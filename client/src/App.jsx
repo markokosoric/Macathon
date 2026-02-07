@@ -1,49 +1,75 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { Box, Container, Heading, Text, VStack } from '@chakra-ui/react'
+import { UploadCard } from './components/UploadCard'
+import { ResultsDisplay } from './components/ResultsDisplay'
+import axios from 'axios'
 import './App.css'
 
-function App() {
-  const [message, setMessage] = useState({})
 
-  async function callHelloAPI(){
-    try{
-      const response = await fetch("http://localhost:3000/api/hello");
-      if (!response.ok){
-        throw new Error(`HTTP error: , ${response.status}`)
-      }
-      const data = await response.json();
-      setMessage(data);
-      console.log(data);
-    }catch(error){
-      console.log("Error message: ", error);
-    }
+function App() {
+  const [selectedFile, setSelectedFile] = useState(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [result, setResult] = useState(null)
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) return
+
+    setIsAnalyzing(true)
+    
+    // Send image to server
+    const formData = new FormData()
+    formData.append('file', selectedFile)
+    
+    axios.post('http://localhost:3000/upload', formData)
+      .then(res => {
+        console.log(res.data)
+        // Receive response from server and set it as result
+        setResult(res.data)
+      })
+      .catch(err => {
+        console.log("Post error: ", err)
+      })
+      .finally(() => {
+        setIsAnalyzing(false)
+      })
   }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      {message && message.message}  
-      <div className="card">
-        <button onClick={() => callHelloAPI()}>
-          Call Hello API
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Box minH="100vh" bg="#0a0a0a" color="white" display="flex" alignItems="center" justifyContent="center">
+      <Container maxW="4xl" py={10}>
+        <VStack gap={8} align="stretch">
+          {/* Header */}
+          <Box textAlign="center">
+            <Heading 
+              size="4xl" 
+              letterSpacing="tight" 
+              fontWeight="bold"
+              mb={2}
+            >
+              SCAM DETECTOR
+            </Heading>
+            <Text color="gray.400" fontSize="lg">
+              Upload an image to analyze for potential scams
+            </Text>
+          </Box>
+
+          {/* Upload Card */}
+          <UploadCard
+            selectedFile={selectedFile}
+            setSelectedFile={setSelectedFile}
+            isDragging={isDragging}
+            setIsDragging={setIsDragging}
+            onAnalyze={handleAnalyze}
+            isAnalyzing={isAnalyzing}
+            setResult={setResult}
+          />
+
+          {/* Results Display */}
+          <ResultsDisplay result={result} />
+        </VStack>
+      </Container>
+    </Box>
   )
 }
 
