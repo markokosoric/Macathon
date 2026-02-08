@@ -1,6 +1,12 @@
 const express = require("express");
 const cors = require("cors")
 const multer = require('multer')
+const path = require('path')
+const fs = require('fs')
+const dotenv = require('dotenv')
+const { GoogleGenAI } = require('@google/genai')
+
+dotenv.config()
 
 const app = express();
 const PORT = 3000;
@@ -22,7 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb){
-        return cb(null, "./public/Images")
+        return cb(null, "./public/images")
     },
     filename: function(req, file, cb){
         return cb(null, `${Date.now()}_${file.originalname}`)
@@ -61,74 +67,58 @@ app.post('/upload', upload.single('file'), (req, res) => {
     res.json(response)
 })
 
-// GEMINI API ROUTE
-app.post("/api/generate-content", async (req, res) => {
-    console.log("Received POST request to /api/generate-content");
-    console.log("Request body:", req.body);
-    try {
-        const { model, contents } = req.body;
-        console.log("Calling Google GenAI with model:", model);
-        const response = await ai.models.generateContent({ model, contents });
-        console.log("Got response from Google GenAI");
-        res.json({ text: response.text() });
-    } catch (error) {
-        console.error("Error generating content:", error);
-        res.status(500).json({ error: "Failed to generate content" });
-    }
-});
-
-// IMAGE ANALYSIS ROUTE
-app.post("/api/analyze-image", async (req, res) => {
+// GEMINI API ROUTE - Analyze Image
+app.post("/api/analyze-image", upload.single('file'), async (req, res) => {
     console.log("Received POST request to /api/analyze-image");
     try {
-        const { imagePath, prompt } = req.body;
-        
-        if (!imagePath) {
-            return res.status(400).json({ error: "imagePath is required" });
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
         }
 
-        // Read image file and convert to base64
-        const fullPath = path.join(__dirname, "public", imagePath);
-        console.log("Reading image from:", fullPath);
+        const imagePath = req.file.path;
+        const prompt = req.body.prompt || 'Please extract and analyze all text from this image.';
         
-        const imageBuffer = fs.readFileSync(fullPath);
-        const base64Image = imageBuffer.toString("base64");
-        
-        // Determine image media type
-        const extension = path.extname(imagePath).toLowerCase();
-        let mediaType = "image/jpeg";
-        if (extension === ".png") mediaType = "image/png";
-        else if (extension === ".gif") mediaType = "image/gif";
-        else if (extension === ".webp") mediaType = "image/webp";
-        
-        console.log("Image media type:", mediaType);
-        
+        console.log("Analyzing image at:", imagePath);
+        console.log("Prompt:", prompt);
+
+        // Read the image file and convert to base64
+        const imageBuffer = fs.readFileSync(imagePath);
+        const base64Image = imageBuffer.toString('base64');
+        const mimeType = 'image/png'; // Adjust based on actual file type if needed
+
         // Call Gemini API with image
         const response = await ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: 'gemini-2.5-flash-lite',
             contents: [
                 {
-                    role: "user",
+                    role: 'user',
                     parts: [
                         {
-                            inlineData: {
-                                mimeType: mediaType,
-                                data: base64Image,
-                            },
+                            text: prompt
                         },
                         {
-                            text: prompt || "Please extract and analyze all text from this image.",
-                        },
-                    ],
-                },
-            ],
+                            inlineData: {
+                                mimeType: mimeType,
+                                data: base64Image
+                            }
+                        }
+                    ]
+                }
+            ]
         });
 
-        console.log("Got response from Google GenAI for image analysis");
-        res.json({ text: response.text() });
+        console.log("Got response from Google GenAI");
+        
+        // Clean up the uploaded file
+        fs.unlinkSync(imagePath);
+
+        res.json({ 
+            analysis: response.candidates[0].content.parts[0].text,
+            status: 'success'
+        });
     } catch (error) {
         console.error("Error analyzing image:", error);
-        res.status(500).json({ error: "Failed to analyze image" });
+        res.status(500).json({ error: "Failed to analyze image", details: error.message });
     }
 });
 

@@ -13,64 +13,35 @@ function App() {
   const [result, setResult] = useState(null)
 
   const handleAnalyze = async () => {
-    if (!selectedFile) return
-
-    setIsAnalyzing(true)
-    
-    // Send image to server
-    const formData = new FormData()
-    formData.append('file', selectedFile)
-    
-    axios.post('http://localhost:3000/upload', formData)
-      .then(res => {
-        console.log(res.data)
-        // Receive response from server and set it as result
-        setResult(res.data)
-      })
-      .catch(err => {
-        console.log("Post error: ", err)
-      })
-      .finally(() => {
-        setIsAnalyzing(false)
-      })
-  }
-
-  async function submitMessage() {
-    try {
-      console.log("Submitting message...");
-      const response = await fetch('http://localhost:3000/api/generate-content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'gemini-2.0-flash',
-          contents: 'What is the capital of France?',
-        }),
-      });
-      console.log("Response status:", response.status);
-      const data = await response.json();
-      console.log("Data received:", data);
-    } catch (error) {
-      console.error('Error calling backend:', error);
+    if (!selectedFile) {
+      console.error('No file selected for analysis');
+      return;
     }
-  }
 
-  async function analyzeImage() {
     try {
+      setIsAnalyzing(true);
       console.log("Analyzing image...");
+      
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('prompt', 'Please extract and analyze all text from this image.');
+
       const response = await fetch('http://localhost:3000/api/analyze-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imagePath: 'images/Scam-Text-Messages.png',
-          prompt: 'Please extract and analyze all text from this image.',
-        }),
+        body: formData,
       });
-      console.log("Response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       console.log("Image analysis result:", data);
-      setMessage(data);
+      setResult(data);
     } catch (error) {
       console.error('Error analyzing image:', error);
+    } finally {
+      setIsAnalyzing(false);
     }
   }
 
