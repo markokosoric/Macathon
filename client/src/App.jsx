@@ -35,6 +35,45 @@ function App() {
       })
   }
 
+  async function submitMessage() {
+    try {
+      console.log("Submitting message...");
+      const response = await fetch('http://localhost:3000/api/generate-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemini-2.0-flash',
+          contents: 'What is the capital of France?',
+        }),
+      });
+      console.log("Response status:", response.status);
+      const data = await response.json();
+      console.log("Data received:", data);
+    } catch (error) {
+      console.error('Error calling backend:', error);
+    }
+  }
+
+  async function analyzeImage() {
+    try {
+      console.log("Analyzing image...");
+      const response = await fetch('http://localhost:3000/api/analyze-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imagePath: 'images/Scam-Text-Messages.png',
+          prompt: 'Please extract and analyze all text from this image.',
+        }),
+      });
+      console.log("Response status:", response.status);
+      const data = await response.json();
+      console.log("Image analysis result:", data);
+      setMessage(data);
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+    }
+  }
+
   return (
     <Box minH="100vh" bg="#0a0a0a" color="white" display="flex" alignItems="center" justifyContent="center">
       <Container maxW="4xl" py={10}>
