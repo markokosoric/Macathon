@@ -76,7 +76,7 @@ app.post("/api/analyze-image", upload.single('file'), async (req, res) => {
         }
 
         const imagePath = req.file.path;
-        const prompt = req.body.prompt || `
+        const prompt = `
             You are ScamRiskRater, an expert assistant for detecting scam messages and phishing emails.
 
             TASK
