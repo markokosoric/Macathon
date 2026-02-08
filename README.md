@@ -40,10 +40,6 @@ Second Look addresses this problem by:
 │   │   ├── components
 │   │   │   ├── ResultsDisplay.jsx
 │   │   │   ├── ui
-│   │   │   │   ├── color-mode.jsx
-│   │   │   │   ├── provider.jsx
-│   │   │   │   ├── toaster.jsx
-│   │   │   │   └── tooltip.jsx
 │   │   │   └── UploadCard.jsx
 │   │   ├── index.css
 │   │   └── main.jsx
