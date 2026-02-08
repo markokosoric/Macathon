@@ -309,11 +309,11 @@ app.post('/ask',
         console.log('Received question from userId:', userId);
         if (!main_chat_history[userId]){
             main_chat_history[userId]=[];
-            console.log('🆕 Created new chat history for userId:', userId);
+            console.log('Created new chat history for userId:', userId);
         }
 
         let ind_chat_history = main_chat_history[userId];
-        console.log('📊 Current chat history length:', ind_chat_history.length, 'messages');
+        console.log('Current chat history length:', ind_chat_history.length, 'messages');
         
         // Build contents array with system prompt, chat history, and new question
         const contents = [
