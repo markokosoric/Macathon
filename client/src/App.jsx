@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Box, Container, Heading, Text, VStack } from '@chakra-ui/react'
 import { UploadCard } from './components/UploadCard'
 import { ResultsDisplay } from './components/ResultsDisplay'
-import axios from 'axios'
+import { ChatBox } from './components/ChatBox'
 import './App.css'
 
 
@@ -11,6 +11,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [result, setResult] = useState(null)
+  const [error, setError] = useState(null)
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
@@ -22,8 +23,16 @@ function App() {
       setIsAnalyzing(true);
       console.log("Analyzing image...");
       
+      // Get or create userId
+      let userId = sessionStorage.getItem('chatUserId');
+      if (!userId) {
+        userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        sessionStorage.setItem('chatUserId', userId);
+      }
+      
       const formData = new FormData();
       formData.append('file', selectedFile);
+      formData.append('userId', userId);
 
       const response = await fetch('http://localhost:3000/api/analyze-image', {
         method: 'POST',
@@ -56,7 +65,7 @@ function App() {
               fontWeight="bold"
               mb={2}
             >
-              SCAM DETECTOR
+              SECOND LOOK
             </Heading>
             <Text color="gray.400" fontSize="lg">
               Upload an image to analyze for potential scams
@@ -76,6 +85,9 @@ function App() {
 
           {/* Results Display */}
           <ResultsDisplay result={result} />
+          
+          {/* AI ChatBot - Only show after image analysis */}
+          {result && <ChatBox result={result} />}
         </VStack>
       </Container>
     </Box>
