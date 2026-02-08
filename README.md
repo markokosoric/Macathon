@@ -24,3 +24,59 @@ Second Look addresses this problem by:
 - **Frontend:** React, Vite, Chakra UI
 - **AI:** Google Gemini AI, OCR for text extraction from screenshots
 - **Backend:** Node.js
+
+## Project Structure
+```
+├── client
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── assets
+│   │   ├── components
+│   │   │   ├── ResultsDisplay.jsx
+│   │   │   ├── ui
+│   │   │   │   ├── color-mode.jsx
+│   │   │   │   ├── provider.jsx
+│   │   │   │   ├── toaster.jsx
+│   │   │   │   └── tooltip.jsx
+│   │   │   └── UploadCard.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   └── vite.config.js
+├── package-lock.json
+├── package.json
+├── README.md
+└── server
+    ├── index.js
+    ├── package-lock.json
+    ├── package.json
+    └── public
+        └── Images
+```
+
+## Installation
+
+```
+# Clone the repository
+git clone <repository-url>
+cd Macathon
+
+# Install dependencies
+npm install
+
+# Create .env with:
+GEMINI_API_KEY=your_gemini_key
+
+# Run the server
+cd server
+npm start
+
+# Run development client
+cd client
+npm run dev
+```
